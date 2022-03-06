@@ -15,6 +15,7 @@ import {
   Text,
   StatusBar,
 } from 'react-native';
+import { Constants } from 'react-native-unimodules';
 
 import {
   Header,
@@ -25,6 +26,7 @@ import {
 } from 'react-native/Libraries/NewAppScreen';
 
 const App: () => React$Node = () => {
+  console.log(Constants.systemFonts);
   return (
     <>
       <StatusBar barStyle="dark-content" />
