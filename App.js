@@ -1,116 +1,95 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- * @flow strict-local
- */
-
 import React from 'react';
-import {
-  SafeAreaView,
-  StyleSheet,
-  ScrollView,
-  View,
-  Text,
-  StatusBar,
-} from 'react-native';
+import {useState, useEffect, useRef} from 'react';
+import {Text, View, StyleSheet, TouchableOpacity} from 'react-native';
 import { Constants } from 'react-native-unimodules';
+import {Audio} from 'expo-av';
 
-import {
-  Header,
-  LearnMoreLinks,
-  Colors,
-  DebugInstructions,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+export default function App() {
+  const [status1, setStatus1] = useState();
+  const [status2, setStatus2] = useState();
+  const {current: sound} = useRef(new Audio.Sound());
+  const [currentStatus, setStatus] = useState();
 
-const App: () => React$Node = () => {
-  console.log(Constants.systemFonts);
+  function customOnPlaybackStatusUpdate(status) {
+    if (status.isLoaded) {
+      setStatus(status);
+    }
+    console.log(
+      `Current position/Duration: ${status.positionMillis}/${status.durationMillis}`,
+    );
+  }
+
+  async function playSoundFromCloudinary() {
+    try {
+      if (currentStatus && currentStatus.isLoaded) {
+        console.log('Stopping sound...');
+        await sound.stopAsync();
+        console.log('unloading sound...');
+        await sound.unloadAsync();
+      }
+
+      console.log('loading audacity sound...');
+      await sound.loadAsync(
+        require('./assets/file_downloaded_from_cloudinary.mp3'),
+      );
+      sound.setProgressUpdateIntervalAsync(2000);
+      sound.setOnPlaybackStatusUpdate(customOnPlaybackStatusUpdate);
+      await sound.playAsync();
+      setStatus1(await sound.getStatusAsync());
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  async function playReencodedSound() {
+    try {
+      if (currentStatus && currentStatus.isLoaded) {
+        console.log('Stopping sound.');
+        await sound.stopAsync();
+        await sound.unloadAsync();
+      }
+
+      console.log('load audacity sound');
+      await sound.loadAsync(require('./assets/reencoded_by_audacity.mp3'));
+      sound.setProgressUpdateIntervalAsync(2000);
+      sound.setOnPlaybackStatusUpdate(customOnPlaybackStatusUpdate);
+      await sound.playAsync();
+      setStatus2(await sound.getStatusAsync());
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
   return (
-    <>
-      <StatusBar barStyle="dark-content" />
-      <SafeAreaView>
-        <ScrollView
-          contentInsetAdjustmentBehavior="automatic"
-          style={styles.scrollView}>
-          <Header />
-          {global.HermesInternal == null ? null : (
-            <View style={styles.engine}>
-              <Text style={styles.footer}>Engine: Hermes</Text>
-            </View>
-          )}
-          <View style={styles.body}>
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>Step One</Text>
-              <Text style={styles.sectionDescription}>
-                Edit <Text style={styles.highlight}>App.js</Text> to change this
-                screen and then come back to see your edits.
-              </Text>
-            </View>
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>See Your Changes</Text>
-              <Text style={styles.sectionDescription}>
-                <ReloadInstructions />
-              </Text>
-            </View>
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>Debug</Text>
-              <Text style={styles.sectionDescription}>
-                <DebugInstructions />
-              </Text>
-            </View>
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>Learn More</Text>
-              <Text style={styles.sectionDescription}>
-                Read the docs to discover what to do next:
-              </Text>
-            </View>
-            <LearnMoreLinks />
-          </View>
-        </ScrollView>
-      </SafeAreaView>
-    </>
+    <View style={styles.container}>
+      <TouchableOpacity style={styles.button} onPress={playSoundFromCloudinary}>
+        <Text style={styles.buttonText}>Load track from cloudinary</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.button} onPress={playReencodedSound}>
+        <Text style={styles.buttonText}>Load reencoded track</Text>
+      </TouchableOpacity>
+    </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
-  scrollView: {
-    backgroundColor: Colors.lighter,
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    paddingTop: Constants.statusBarHeight,
+    backgroundColor: '#ecf0f1',
+    padding: 8,
   },
-  engine: {
-    position: 'absolute',
-    right: 0,
+  button: {
+    margin: 10,
+    backgroundColor: '#000',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
   },
-  body: {
-    backgroundColor: Colors.white,
-  },
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: Colors.black,
-  },
-  sectionDescription: {
-    marginTop: 8,
+  buttonText: {
+    color: '#fff',
     fontSize: 18,
-    fontWeight: '400',
-    color: Colors.dark,
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-  footer: {
-    color: Colors.dark,
-    fontSize: 12,
-    fontWeight: '600',
-    padding: 4,
-    paddingRight: 12,
-    textAlign: 'right',
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
 });
-
-export default App;
