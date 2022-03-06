@@ -10,6 +10,7 @@
     "lint": "eslint ."
   },
   "dependencies": {
+    "expo-av": "8.4.0",
     "react": "16.13.1",
     "react-native": "0.63.2",
     "react-native-unimodules": "^0.10.1"
